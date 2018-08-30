@@ -1,14 +1,18 @@
 # Aceleración de algoritmos de machine learning desde un enfoque arquitectónico
 
-Se desarrollará un estudio detallado sobre el comportamiento de una red neuronal profunda de convolucion (CNN) sobre una arquitectura con GPU utilizando los datos obtenidos de Kaggle de Google Landmark Recognition Challenge.
+Se desarrollará un estudio detallado sobre el comportamiento de una red neuronal profunda de convolucion (CNN) sobre una arquitectura con GPU utilizando los datos obtenidos de Kaggle de https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia.
 
 ## Problema a tratar
 
-Se ha seleccionado el dataset utilizado en la competencia de Kaggle Google Landmark Recognition Challenge y se intentara lograr la mayor presicion y el mejor tiempo posible en la prediccion del label utilizando GPU.
+Se ha seleccionado el dataset chest xray pneumonia y se intentara lograr la mayor precision y el mejor tiempo posible en la prediccion del label utilizando GPU.
 
 ### Analisis de datos
 
-Descargaremos los datos de Kaggle Google Landmark Recognition Challenge https://www.kaggle.com/google/google-landmarks-dataset y los pondremos en la carpeta input.
+Descargaremos los datos de https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia y los pondremos en la carpeta input.
+
+```
+kaggle datasets download -d paultimothymooney/chest-xray-pneumonia
+```
 
 Importaremos las librerias necesarias:
 ```
