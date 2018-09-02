@@ -253,4 +253,6 @@ https://leonardoaraujosantos.gitbooks.io/artificial-inteligence/content/pooling_
 
 https://ujjwalkarn.me/2016/08/11/intuitive-explanation-convnets/
 
+https://deepnotes.io/softmax-crossentropy
+
 Material del curso Aceleración de Machine Learning desde un enfoque arquitectónico.
