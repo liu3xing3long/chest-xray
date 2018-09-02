@@ -13,6 +13,7 @@ kaggle datasets download -d paultimothymooney/chest-xray-pneumonia
 ```
 
 Run data-preprocesing/dataPreprocessing.py
+
 Run data-preprocesing/normalization.py
 
 After that you can run alternativeCNN.py to start running the network training.
