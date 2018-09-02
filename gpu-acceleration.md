@@ -174,6 +174,7 @@ Para las funciones de activacion se decidio utilizar la funcion Leaky Relu, la c
 Las capas pooling permiten reducir el tamaño de los datos que fluyen por la red neuronal. De esta forma es posible mejorar su performance y reducir overfitting al poseer menos informacion espacial.
 La tecnica de pooling funciona mediante una ventana de tamaño k, la cual se desplazara por la matriz de datos. A medida que la ventana se desplaza de a pasos (stride), se realiza una funcion sobre todos los datos que la ventana abarque y el resultado sera un elemento de la matriz output, de esta forma el tamaño de la matriz sera reducido segun el valor de ventana que se tome y los pasos realizados.
 Para pooling se probaron las funciones max y average, dando resultados similares, pero dado que max pooling otorgo resultados ligeramente superiores se opto por elegirla. 
+Se eligió poner 3 capas de pooling, una entre la segunda y tercer capa convolucional, otra entre la tercer y cuarta capa convolucional, y otra más entre la cuarta capa convolucional y la primer capa fully connected. Esta elección se tomó para preservar en las primeras dos capas convolucionales la informacion espacial de las matrices de input. A medida que aumenta el tamaño de las capas, se realizara pooling para mantener la performance.
 
 ### Red fully connected
 
