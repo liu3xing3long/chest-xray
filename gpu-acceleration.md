@@ -82,13 +82,16 @@ PNEUNOMIA |	390
 NORMAL    |	234
 
 
-20 imagenes seleccionadas al azar:
+20 imagenes seleccionadas al azar
+
 ![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images.png)
 
 20 imagenes de personas con pneumonia
+
 ![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-PEUMONIA.png)
 
 20 imagenes de personas sin pneumonia
+
 ![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-NORMAL.png)
 
 ## Preparación de datos
@@ -106,7 +109,8 @@ X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
 X_scaled = X_std * (max - min) + min
 ```
 
-20 imagenes normalizadas:
+20 imagenes normalizadas
+
 ![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
 
 
