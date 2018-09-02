@@ -117,19 +117,19 @@ X_scaled = X_std * (max - min) + min
 
 ## Definición del modelo
 
-Se utilizara una CNN en tensorflow. Se probaron varias combinaciones de capas, 2, 3 y 4 capas convolucionales y 1 y 2 capas fully connected. Luego de varios intentos con capas de 2 o 3 capas, se descartaron debido a que con estas cantidades de capas no se lograba extraer una cantidad suficiente de features, lo que generaba una baja accuracy (aproximadamente de 75% sobre los datos de test) y, en caso de alargar el entrenamiento, tendian a hacer overfitting, bajando la accuracy sobre lo datos de test aún más.
-La selección de 2 capas fully connected tambien permitió un aumento en la accuracy sobre la seleccion de 1.
+Se utilizara una CNN en tensorflow. Se probaron varias combinaciones de capas, 2, 3 y 4 capas convolucionales y 1 y 2 capas fully connected. Luego de varios intentos con 2 o 3 capas convolucionales, se descartaron debido a que con estas cantidades de capas no se lograba extraer una cantidad suficiente de features, lo que generaba una baja accuracy (aproximadamente de 75% sobre los datos de test) y, en caso de alargar el entrenamiento, tendian a hacer overfitting, bajando la accuracy sobre lo datos de test aún más.
+La selección de 2 capas fully connected también permitió un aumento en la accuracy sobre la seleccion de 1 sola capa fully connected.
 Finalmente se contará con una arquitectura con la siguiente forma, cada capa se explicará más adelante:
 
 nombre de capa | descripcion
 ----- | -----
 conv1 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 1 , output fmap 16  y funcion de activacion leaky relu
 conv2 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 16 , output fmap 32  y funcion de activacion leaky relu
-max_pool | max pooling con pasos de 2 x 2 quedando con imagenes de tamaño 128x128
+max_pool | max pooling con pasos y ventana de 2 x 2 quedando con imagenes de tamaño 128x128
 conv3 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 32 , output fmap 64  y funcion de activacion leaky relu
-max_pool | max pooling con pasos de 2 x 2 quedando con imagenes de tamaño 64x64
+max_pool | max pooling con pasos y ventana de 2 x 2 quedando con imagenes de tamaño 64x64
 conv4 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 64 , output fmap 128 y funcion de activacion leaky relu
-max_pool | max pooling con pasos de 2 x 2 quedando con imagenes de tamaño 32x32
+max_pool | max pooling con pasos y ventana de 2 x 2 quedando con imagenes de tamaño 32x32
 dense1 | capa fully connected con 32x32x128 entradas y 512 salidas con funcion de activacion leaky relu
 dense2 | capa fully connected con 512 entradas y 1024 salidas con funcion de activacion leaky relu
 out | capa de salida usando cross entropy loss con softmax y prediccion pesada para contrarrestar el desbalance de clases de input
@@ -146,27 +146,27 @@ Por ultimo se inicio dropout con un valor de 0.75, de esta forma, en cada paso d
 Una red neuronal convolucional (CNN) es un tipo de red neuronal especialmente util en la clasificacion y reconocimiento de imagenes.
 La principal funcionalidad de una CNN es la de extraer caracteristicas de las imagenes preservando la relacion espacial entre pixeles utilizando filtros, los cuales son matrices de pequeño tamaño, que se deslizaran por sobre las matrices de input. Cabe aclarar que es posible representar una imagen mediante una matriz donde cada pixel es un valor de esta.
 A medida que el filtro se desplaza por la matriz input de a stride pixeles se multiplicaran los datos de la matriz input por los del filtro y luego se sumaran estos resultados para formar un elemento de la matriz de output, tambien llamada feature map.
-Una vez formado el feature map se le sumara el bias para pasar el resultado a la proxima capa.
+Una vez formado el feature map se le sumará el bias y aplicará la funcion de activación para pasar el resultado a la proxima capa.
 A medida que la red se entrena, este filtro ira cambiando y descubriendo nuevas features. 
 
 ![some_images](https://github.com/okason97/chest-xray/blob/master/images/convolutional.png)
 
-Es posible la utilizacion de multiples canales de input mediante batchs lo que permite acelerar la velocidad de cada epoch de esta forma se puede usar el mismo filtro cacheado para multiples matrices de input simultaneamente. Tambien es posible aumentar la profundidad de la CNN aplicando multiples filtros simultaneamente a los mismos datos de entrada generando a su vez multiples feature maps. 
+Es posible la utilizacion de multiples canales de input mediante batchs lo que permite acelerar la velocidad de cada epoch, de esta forma se puede usar el mismo filtro cacheado para multiples matrices de input simultaneamente. Tambien es posible aumentar la profundidad de la CNN aplicando multiples filtros simultaneamente a los mismos datos de entrada generando a su vez multiples feature maps. 
 
 ![some_images](https://github.com/okason97/chest-xray/blob/master/images/multiple-convolutional.png)
 
-Es posible, gracias a lo mencionado anteriormente, representar la CNN como una multiplicacion de matrices usando Matrices de Toeplitz.
+Es posible, gracias a lo mencionado anteriormente, representar la CNN como una multiplicacion de matrices usando Matrices de Toeplitz. Esto permitira ejecutar las capas convolucionales con un gran paralelismo de operaciones en la GPU, aumentando en gran medida su velocidad de procesamiento.
 
 ![some_images](https://github.com/okason97/chest-xray/blob/master/images/matrix-convolutional.png)
 
-Las GPU son coprocesadores altamente segmentados con una gran cantidad de unidades funcionales y gran ancho de banda especialmente utiles para el trabajo paralelo. En el caso de la GPU utilizada para este proyecto se tiene un ancho de banda de 3.52 Tflops para operaciones de coma flotante de precision simple, 208 GBytes/s ancho de banda de memoria, 5 GB de memoria y 2496 nucleos CUDA. 
-Todas estas caracteristicas vuelven a las GPU una herramienta sumamente útil para el procesamiento de redes neuronales, las cuales pueden tener sus operaciones representadas mediante multiplicación de matrices. La existencia de librerias de GPU como Nvidia CUBLAS, cuDNN, clBLAS, etc. permite utilizarlas para aumentar considerablemente la velocidad de procesamiento de la CNN.
+Las GPU son coprocesadores altamente segmentados con una gran cantidad de unidades funcionales y gran ancho de banda especialmente utiles para el trabajo paralelo como, por ejemplo, la multiplicacion de matrices. En el caso de la GPU utilizada para este proyecto se tiene un ancho de banda de 3.52 Tflops para operaciones de coma flotante de precision simple, 208 GBytes/s ancho de banda de memoria, 5 GB de memoria y 2496 nucleos CUDA. 
+Todas estas caracteristicas vuelven a las GPU una herramienta sumamente útil para el procesamiento de redes neuronales, las cuales pueden tener sus operaciones representadas mediante multiplicación de matrices. La existencia de librerias de GPU como Nvidia CUBLAS, cuDNN, clBLAS, etc. permite utilizarlas para aumentar considerablemente la velocidad de procesamiento de la CNN. Tensorflow utiliza CUDA como libreria para aprovechar la GPU.
 
 ![some_images](https://github.com/okason97/chest-xray/blob/master/images/gpu.jpg)
 
-### Funciones de activacion
+### Funciones de activación
 
-Para las funciones de activacion se decidio utilizar la funcion Leaky Relu, la cual tan como la funcion Relu presenta el mismo valor que el introducido en caso de ser positivo, pero a diferencia de Relu, Leaky Relu posee una pendiente para los valores menores a 0. Se decidio utilizar una pendiente con valor de alpha de 0.5, bastante mayor que la indicada en Empirical Evaluation of Rectified Activations in Convolution Network de 5.5 ya que luego de varias pruebas se descubrió que para este conjunto de datos, una pendiente mayor da mejores resultados.
+Para las funciones de activación se decidió utilizar la funcion Leaky Relu, la cual, asi como la funcion Relu, presenta el mismo valor que el introducido en caso de ser positivo, pero a diferencia de Relu, Leaky Relu posee una pendiente para los valores menores a 0. Se decidio utilizar una pendiente con valor de alpha de 0.5, bastante mayor que la indicada en Empirical Evaluation of Rectified Activations in Convolution Network de 5.5 ya que luego de varias pruebas se descubrió que para este conjunto de datos, una pendiente mayor da mejores resultados.
 
 ![some_images](https://github.com/okason97/chest-xray/blob/master/images/leaky-relu.png)
 
@@ -174,7 +174,7 @@ Para las funciones de activacion se decidio utilizar la funcion Leaky Relu, la c
 
 Las capas pooling permiten reducir el tamaño de los datos que fluyen por la red neuronal. De esta forma es posible mejorar su performance y reducir overfitting al poseer menos informacion espacial.
 La tecnica de pooling funciona mediante una ventana de tamaño k, la cual se desplazara por la matriz de datos. A medida que la ventana se desplaza de a pasos (stride), se realiza una funcion sobre todos los datos que la ventana abarque y el resultado sera un elemento de la matriz output, de esta forma el tamaño de la matriz sera reducido segun el valor de ventana que se tome y los pasos realizados.
-Para pooling se probaron las funciones max y average, dando resultados similares, pero dado que max pooling otorgo resultados ligeramente superiores se opto por elegirla. 
+Para pooling se probaron las funciones max y average, dando resultados similares, pero dado que max pooling otorgó resultados ligeramente superiores se opto por elegirla. 
 Se eligió poner 3 capas de pooling, una entre la segunda y tercer capa convolucional, otra entre la tercer y cuarta capa convolucional, y otra más entre la cuarta capa convolucional y la primer capa fully connected. Esta elección se tomó para preservar en las primeras dos capas convolucionales la informacion espacial de las matrices de input. A medida que aumenta el tamaño de las capas, se realizara pooling para mantener la performance.
 
 ### Red fully connected
