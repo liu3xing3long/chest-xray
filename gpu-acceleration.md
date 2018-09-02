@@ -117,7 +117,7 @@ X_scaled = X_std * (max - min) + min
 
 ## Definición del modelo
 
-Se utilizara una CNN en tensorflow. Se probaron varias combinasciones de capas, 2,3 o 4 capas convolucionales y 1 o 2 capas fully connected. Luego de varios intentos con capas de 2 o 3 capas, se descartaron debido a que con estas cantidades de capas no se lograba extraer una cantidad suficiente de features, lo que generaba una baja accuracy (aproximadamente de 75% sobre los datos de test) y, en caso de alargar el entrenamiento, tendian a hacer overfitting, bajando la accuracy sobre lo datos de test aún más.
+Se utilizara una CNN en tensorflow. Se probaron varias combinaciones de capas, 2,3 o 4 capas convolucionales y 1 o 2 capas fully connected. Luego de varios intentos con capas de 2 o 3 capas, se descartaron debido a que con estas cantidades de capas no se lograba extraer una cantidad suficiente de features, lo que generaba una baja accuracy (aproximadamente de 75% sobre los datos de test) y, en caso de alargar el entrenamiento, tendian a hacer overfitting, bajando la accuracy sobre lo datos de test aún más.
 La selección de 2 capas fully connected tambien permitió un aumento en la accuracy sobre la seleccion de 1.
 Finalmente se contará con una arquitectura con la siguiente forma, cada capa se explicará más adelante:
 
