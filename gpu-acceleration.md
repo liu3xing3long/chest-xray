@@ -1,12 +1,18 @@
 # Aceleración de algoritmos de machine learning desde un enfoque arquitectónico
 
-Se desarrollará un estudio detallado sobre el comportamiento de una red neuronal profunda de convolucion (CNN) sobre una arquitectura con GPU utilizando los datos obtenidos de Kaggle de https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia.
+Se desarrollará un estudio detallado sobre el comportamiento de una red neuronal profunda de convolucion (CNN) sobre una arquitectura con GPU utilizando los datos obtenidos de Kaggle de https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia. 
 
 ## Problema a tratar
 
-Se ha seleccionado el dataset chest xray pneumonia y se intentara lograr la mayor precision y el mejor tiempo posible en la prediccion del label utilizando GPU.
+Se ha seleccionado el dataset chest xray pneumonia, el cual esta compuesto por imagenes de rayos x de personas etiquetados segun tengan o no pneunomia. Se busca lograr la mayor precision en el mejor tiempo posible para la prediccion del label utilizando GPU para mejorar los tiempos de entrenamiento e inferencia.
 
-### Analisis de datos
+## Software y Hardware
+
+Se utilizó el lenguaje Python con la libreria Tensorflow para el diseño de la red neuronal.
+Tambien se utilizaron pandas para cargar datos y procesarlos, numpy para operaciones sobre arreglos, skimage para el procesamiento de las imagenes y sklearn para su normalización.
+Para correr la red neuronal se utilizo una CPU x y una GPU Tesla K20, la cual fue usada mediante cuda 9.0 para acelerar el procesamiento de la red convolucional en tensorflow.
+
+## Analisis de datos
 
 Descargaremos los datos de https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia y los pondremos en la carpeta input.
 
@@ -31,36 +37,28 @@ test_normal_dir = "../input/test/NORMAL"
 test_pneumonia_dir = "../input/test/PNEUMONIA"
 train_normal_dir = "../input/train/NORMAL"
 train_pneumonia_dir = "../input/train/PNEUMONIA"
-val_normal_dir = "../input/val/NORMAL"
-val_pneumonia_dir = "../input/val/PNEUMONIA"
 full_url = np.vectorize(lambda url,prev_url: prev_url+"/"+url)
 test_normal_data = pd.DataFrame(full_url(np.array(os.listdir(test_normal_dir)),test_normal_dir), columns=["image_dir"])
 test_pneumonia_data = pd.DataFrame(full_url(np.array(os.listdir(test_pneumonia_dir)),test_pneumonia_dir), columns=["image_dir"])
 train_normal_data = pd.DataFrame(full_url(np.array(os.listdir(train_normal_dir)),train_normal_dir), columns=["image_dir"])
 train_pneumonia_data = pd.DataFrame(full_url(np.array(os.listdir(train_pneumonia_dir)),train_pneumonia_dir), columns=["image_dir"])
-val_normal_data = pd.DataFrame(full_url(np.array(os.listdir(val_normal_dir)),val_normal_dir), columns=["image_dir"])
-val_pneumonia_data = pd.DataFrame(full_url(np.array(os.listdir(val_pneumonia_dir)),val_pneumonia_dir), columns=["image_dir"])
 test_normal_data["class"] = "NORMAL"
 test_pneumonia_data["class"] = "PNEUNOMIA"
 train_normal_data["class"] = "NORMAL"
 train_pneumonia_data["class"] = "PNEUNOMIA"
-val_normal_data["class"] = "NORMAL"
-val_pneumonia_data["class"] = "PNEUNOMIA"
 test_data = test_normal_data.append(test_pneumonia_data)
 train_data = train_normal_data.append(train_pneumonia_data)
-val_data = val_normal_data.append(val_pneumonia_data)
 ```
 
 El tamaño de los datos de entrenamiento, test y validacion:
 ```
 print("Training data size",train_data.shape)
-print("Test data size",test_data.shape)
-print("Val data size",val_data.shape)
+print("Test data size",test_data.shape)```
 ```
+
 ```
 Training data size (5216, 2)
 Test data size (624, 2)
-Val data size (16, 2)
 ```
 
 Repartimiento de clases en datos de entrenamiento:
@@ -83,24 +81,24 @@ pd.DataFrame(test_data['class'].value_counts())
 PNEUNOMIA |	390
 NORMAL    |	234
 
-Repartimiento de clases en datos de validacion:
-```
-# val clases sizes
-pd.DataFrame(val_data['class'].value_counts())
-```
-  class   | ammount
-----------|-------
-PNEUNOMIA |	8
-NORMAL    |	8
 
-20 imagenes seleccionadas al azar:
-![some_images](https://github.com/okason97/google-landmark-machine-learning-acceleration/blob/master/plots/someimages.png)
+20 imagenes seleccionadas al azar
 
-### Preparación de datos
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images.png)
 
-Dados los diferentes tamaños de las imagenes, estas deberan ser modificadas para poseer todas el mismo tamaño (256x256).
+20 imagenes de personas con pneumonia
 
-Se reduciran dimensionalidad de las imagenes cambiando de canales RGB a un solo canal en escala de grises.
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-PEUMONIA.png)
+
+20 imagenes de personas sin pneumonia
+
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-NORMAL.png)
+
+## Preparación de datos
+
+Dados los diferentes tamaños de las imagenes, estas serán modificadas para poseer todas el mismo tamaño (256x256).
+
+Se reduciran dimensionalidad de las imagenes cambiando de canales RGB a un solo canal en escala de grises para reducir el tamaño del input con lo que las imagenes ocuparan menos espacio en memoria y podran ser procesadas más rapidamente.
 
 Luego, se realizara ecualizacion de histograma para aumentar el contraste en las imagenes.
 
@@ -111,24 +109,124 @@ X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
 X_scaled = X_std * (max - min) + min
 ```
 
+20 imagenes normalizadas
 
-### Definición del modelo
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
 
-Se utilizara una CNN en tensorflow. Esta contará con una arquitectura con la siguiente forma
+
+## Definición del modelo
+
+Se utilizara una CNN en tensorflow. Esta contará con una arquitectura con la siguiente forma, cada capa se explicará más adelante:
 
 nombre de capa | descripcion
 ----- | -----
-conv1 | capa convolucional con tamaño de ventana de 3x3 y 
-relu |
-max_pool |
-conv2 |
-relu |
-max_pool |
-dense1 |
-out |
+conv1 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 1 , output fmap 16  y funcion de activacion relu
+conv2 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 16 , output fmap 32  y funcion de activacion relu
+max_pool | max pooling con pasos de 2 x 2 quedando con imagenes de tamaño 128x128
+conv3 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 32 , output fmap 64  y funcion de activacion relu
+max_pool | max pooling con pasos de 2 x 2 quedando con imagenes de tamaño 64x64
+conv4 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 64 , output fmap 128 y funcion de activacion relu
+max_pool | max pooling con pasos de 2 x 2 quedando con imagenes de tamaño 32x32
+dense1 | capa fully connected con 32x32x128 entradas y 512 salidas
+dense2 | capa fully connected con 512 entradas y 1024 salidas
+out | capa de salida usando cross entropy loss con softmax y prediccion pesada para contrarrestar el desbalance de clases de input
 
+### Capas convolucionales
 
+Una red neuronal convolucional (CNN) es un tipo de red neuronal especialmente util en la clasificacion y reconocimiento de imagenes.
+La principal funcionalidad de una CNN es la de extraer caracteristicas de las imagenes preservando la relacion espacial entre pixeles utilizando filtros, los cuales son matrices de pequeño tamaño, que se deslizaran por sobre las matrices de input. Cabe aclarar que es posible representar una imagen mediante una matriz donde cada pixel es un valor de esta.
+A medida que el filtro se desplaza por la matriz input de a stride pixeles se multiplicaran los datos de la matriz input por los del filtro y luego se sumaran estos resultados para formar un elemento de la matriz de output, tambien llamada feature map.
+Una vez formado el feature map se le sumara el bias para pasar el resultado a la proxima capa.
+A medida que la red se entrena, este filtro ira cambiando y descubriendo nuevas features. 
+
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
+
+Es posible la utilizacion de multiples canales de input mediante batchs lo que permite acelerar la velocidad de cada epoch de esta forma se puede usar el mismo filtro cacheado para multiples matrices de input simultaneamente. Tambien es posible aumentar la profundidad de la CNN aplicando multiples filtros simultaneamente a los mismos datos de entrada generando a su vez multiples feature maps. 
+
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
+
+Es posible, gracias a lo mencionado anteriormente, representar la CNN como una multiplicacion de matrices usando Matrices de Toeplitz.
+
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
+
+Las GPU son coprocesadores altamente segmentados con una gran cantidad de unidades funcionales y gran ancho de banda especialmente utiles para el trabajo paralelo. En el caso de la GPU utilizada para este proyecto se tiene un ancho de banda de 3.52 Tflops para operaciones de coma flotante de precision simple, 208 GBytes/s ancho de banda de memoria, 5 GB de memoria y 2496 nucleos CUDA. 
+Todas estas caracteristicas vuelven a las GPU una herramienta sumamente útil para el procesamiento de redes neuronales, las cuales pueden tener sus operaciones representadas mediante multiplicación de matrices. La existencia de librerias de GPU como Nvidia CUBLAS, cuDNN, clBLAS, etc. permite utilizarlas para aumentar considerablemente la velocidad de procesamiento de la CNN.
+
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
+
+### Funciones de activacion
+
+Para las funciones de activacion se decidio utilizar la funcion Leaky Relu, la cual tan como la funcion Relu presenta el mismo valor que el introducido en caso de ser positivo, pero a diferencia de Relu, Leaky Relu posee una pendiente para los valores menores a 0. Se decidio utilizar una pendiente con valor de alpha de 0.5.
+
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
+
+### Pooling
+
+Las capas pooling permiten reducir el tamaño de los datos que fluyen por la red neuronal. De esta forma es posible mejorar su performance y reducir overfitting al poseer menos informacion espacial.
+La tecnica de pooling funciona mediante una ventana de tamaño k, la cual se desplazara por la matriz de datos. A medida que la ventana se desplaza de a pasos (stride), se realiza una funcion sobre todos los datos que la ventana abarque y el resultado sera un elemento de la matriz output, de esta forma el tamaño de la matriz sera reducido segun el valor de ventana que se tome y los pasos realizados.
+Para pooling se probaron las funciones max y average, dando resultados similares, pero dado que max pooling otorgo resultados ligeramente superiores se opto por elegirla. 
+
+### Red fully connected
+
+En una red fully connected cada neurona esta conectada con todas las de la siguiente capa y recibe todas las conexiones de la capa anterior. 
+Es posible la aceleracion de esta capa mediante la utilizacion de GPU, ya que al utilizar batchs de datos, el procesamiento de la capa se transforma en una operacion de multiplicacion de matrices.
+
+### Capa de salida
+
+Al llegar a esta capa, kis inputs se multiplican por el peso, se suman al bias y se suman entre si generando 2 outputs, uno para cada clase de persona (NORMAL y PNEUMONIA), a este resultado se le aplicara la funcion softmax para normalizarlo de forma tal que la suma de los outputs de softmax sean 1, se puede ver como la probabilidad de la pertenencia a cada clase. Utilizando este resultado, se aplicara cross entropy para conseguir un costo, este sera promediado con el resto de los costos calculados en el batch para concluir finalmente con la funcion de costo, la cual se buscara disminuir en cada iteracion de la red neuronal mediante backpropagation.
+
+## Pipelining
+
+La utilizacion de la herramienta Dataset provista por tensorflow permite la generacion de complejos pipelines para alimentar a la GPU con datos y evitar cuello de botella en la recoleccion de estos.
+Para realizar la alimentacion de datos, se utiliza la CPU, la cual tendra la tarea de cargar las imagenes del disco, decodificarlas y procesar el tensor para poder ser procesado por la red, la cual sera ejecutada por la GPU.
+Los datos seran mezclados por la CPU en cada epoch, tambien seran mapeados por esta en multiples hilos en paralelo para preparar las imagenes.
+Adicionalmente, la CPU hara un prefetch de datos, es decir tomará datos de forma adelantada a que estos sean procesados, si la GPU esta procesando el batch n, la CPU, en ese momento, procesara el batch n+1.
+
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
+
+## Entrenamiento
+
+Para el entrenamiento se utilizo Adam optimizer, el cual presenta ventajas frente al optimizador de descenso de gradiente, como la inclusion de la tecnica del momentum, la cual busca evitar resultados optimos locales. La desventaja del optimizador Adam es que es mas lento que el descenso de gradiente, pero es mas sencillo de implementar y genera buenos resultados en problemas complejos.
+
+### Uso de GPU
+
+Utilizando la herramienta nvidia-smi, mediante el comando:
+
+```
+nvidia-smi -l 2
+```
+Es posible medir la utilizacion del gpu mientras corre la red neuronal.
+Los resultados de esta medicion son un utilizamiento del 95.3% de la memoria de GPU, esto equivale a 4521MiB / 4743MiB con un utilizamiento de la GPU de entre 87% y 100%.
+
+Tambien se midio el uso de la CPU mediante el comando
+
+```
+top
+```
+
+Dando un utilizamiento de la CPU mayor al 130% y una utilizacion de memoria de 1.8 GB aproximadamente.
 
 ## Fuentes
 https://becominghuman.ai/image-data-pre-processing-for-neural-networks-498289068258
+
 https://benanne.github.io/2015/03/17/plankton.html#prepro-augmentation
+
+https://www.tensorflow.org/performance/datasets_performance
+
+https://www.tensorflow.org/performance/performance_guide#optimizing_for_gpu
+
+https://www.tensorflow.org/
+
+http://www.holehouse.org/mlclass/10_Advice_for_applying_machine_learning.html
+
+https://www.kth.se/social/files/588617ebf2765401cfcc478c/PHensmanDMasko_dkand15.pdf
+
+https://www.datacamp.com/community/tutorials/tensorboard-tutorial
+
+https://arxiv.org/pdf/1505.00853.pdf
+
+https://leonardoaraujosantos.gitbooks.io/artificial-inteligence/content/pooling_layer.html
+
+https://ujjwalkarn.me/2016/08/11/intuitive-explanation-convnets/
+
+Material del curso Aceleración de Machine Learning desde un enfoque arquitectónico.
