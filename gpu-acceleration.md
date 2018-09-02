@@ -81,6 +81,7 @@ pd.DataFrame(test_data['class'].value_counts())
 PNEUNOMIA |	390
 NORMAL    |	234
 
+En ambos casos se puede observar que existe un desbalance en las clases de las imagenes, ese problema sera resuelto más adelante por la utilizacion de diversas tecnicas, entre ellas la aplicacion de pesos segun la proporcion de elementos de cada clase a la predicción.
 
 20 imagenes seleccionadas al azar
 
@@ -122,15 +123,15 @@ Finalmente se contará con una arquitectura con la siguiente forma, cada capa se
 
 nombre de capa | descripcion
 ----- | -----
-conv1 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 1 , output fmap 16  y funcion de activacion relu
-conv2 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 16 , output fmap 32  y funcion de activacion relu
+conv1 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 1 , output fmap 16  y funcion de activacion leaky relu
+conv2 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 16 , output fmap 32  y funcion de activacion leaky relu
 max_pool | max pooling con pasos de 2 x 2 quedando con imagenes de tamaño 128x128
-conv3 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 32 , output fmap 64  y funcion de activacion relu
+conv3 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 32 , output fmap 64  y funcion de activacion leaky relu
 max_pool | max pooling con pasos de 2 x 2 quedando con imagenes de tamaño 64x64
-conv4 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 64 , output fmap 128 y funcion de activacion relu
+conv4 | capa convolucional con tamaño de ventana de 3x3, tamaño de input fmap de 64 , output fmap 128 y funcion de activacion leaky relu
 max_pool | max pooling con pasos de 2 x 2 quedando con imagenes de tamaño 32x32
-dense1 | capa fully connected con 32x32x128 entradas y 512 salidas
-dense2 | capa fully connected con 512 entradas y 1024 salidas
+dense1 | capa fully connected con 32x32x128 entradas y 512 salidas con funcion de activacion leaky relu
+dense2 | capa fully connected con 512 entradas y 1024 salidas con funcion de activacion leaky relu
 out | capa de salida usando cross entropy loss con softmax y prediccion pesada para contrarrestar el desbalance de clases de input
 
 ### Hiperparametros
@@ -183,7 +184,8 @@ Es posible la aceleracion de esta capa mediante la utilizacion de GPU, ya que al
 
 ### Capa de salida
 
-Al llegar a esta capa, kis inputs se multiplican por el peso, se suman al bias y se suman entre si generando 2 outputs, uno para cada clase de persona (NORMAL y PNEUMONIA), a este resultado se le aplicara la funcion softmax para normalizarlo de forma tal que la suma de los outputs de softmax sean 1, se puede ver como la probabilidad de la pertenencia a cada clase. Utilizando este resultado, se aplicara cross entropy para conseguir un costo, este sera promediado con el resto de los costos calculados en el batch para concluir finalmente con la funcion de costo, la cual se buscara disminuir en cada iteracion de la red neuronal mediante backpropagation.
+Al llegar a esta capa, los inputs se multiplican por el peso, se suman al bias y se suman entre si generando 2 outputs, uno para cada clase de persona (NORMAL y PNEUMONIA). Luego se aplicara a este resultado una multiplicacion por un peso segun la proporcion de elementos de cada clase en los datos, esto ayudara a contrarrestar el desbalance en las clases de los elementos y aumentara la accuracy sobre los datos de test. 
+Al resultado anterior se le aplicara la funcion softmax para normalizarlo de forma tal que la suma de los outputs de softmax sean 1, se puede ver como la probabilidad de la pertenencia a cada clase. Utilizando este resultado, se aplicara cross entropy para conseguir un costo, este sera promediado con el resto de los costos calculados en el batch para concluir finalmente con la funcion de costo, la cual se buscara disminuir en cada iteracion de la red neuronal mediante backpropagation.
 
 ## Pipelining
 
