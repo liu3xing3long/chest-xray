@@ -208,14 +208,25 @@ Dando un utilizamiento de la CPU mayor al 130% y una utilizacion de memoria de 1
 
 ## Fuentes
 https://becominghuman.ai/image-data-pre-processing-for-neural-networks-498289068258
+
 https://benanne.github.io/2015/03/17/plankton.html#prepro-augmentation
+
 https://www.tensorflow.org/performance/datasets_performance
+
 https://www.tensorflow.org/performance/performance_guide#optimizing_for_gpu
+
 https://www.tensorflow.org/
+
 http://www.holehouse.org/mlclass/10_Advice_for_applying_machine_learning.html
+
 https://www.kth.se/social/files/588617ebf2765401cfcc478c/PHensmanDMasko_dkand15.pdf
+
 https://www.datacamp.com/community/tutorials/tensorboard-tutorial
+
 https://arxiv.org/pdf/1505.00853.pdf
+
 https://leonardoaraujosantos.gitbooks.io/artificial-inteligence/content/pooling_layer.html
+
 https://ujjwalkarn.me/2016/08/11/intuitive-explanation-convnets/
+
 Material del curso Aceleración de Machine Learning desde un enfoque arquitectónico.
