@@ -10,7 +10,7 @@ Se ha seleccionado el dataset chest xray pneumonia, el cual esta compuesto por i
 
 Se utilizó el lenguaje Python con la libreria Tensorflow para el diseño de la red neuronal.
 Tambien se utilizaron pandas para cargar datos y procesarlos, numpy para operaciones sobre arreglos, skimage para el procesamiento de las imagenes y sklearn para su normalización.
-Para correr la red neuronal se utilizo una CPU x y una GPU Tesla K20, la cual fue usada mediante cuda 9.0 para acelerar el procesamiento de la red convolucional en tensorflow.
+Para correr la red neuronal se utilizo una CPU Intel Xeon E5-1620 v3 y una GPU Tesla K20, la cual fue usada mediante cuda 9.0 para acelerar el procesamiento de la red convolucional en tensorflow.
 
 ## Analisis de datos
 
