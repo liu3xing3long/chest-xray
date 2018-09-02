@@ -50,7 +50,7 @@ test_data = test_normal_data.append(test_pneumonia_data)
 train_data = train_normal_data.append(train_pneumonia_data)
 ```
 
-El tamaño de los datos de entrenamiento, test y validacion:
+El tamaño de los datos de entrenamiento y test:
 ```
 print("Training data size",train_data.shape)
 print("Test data size",test_data.shape)```
