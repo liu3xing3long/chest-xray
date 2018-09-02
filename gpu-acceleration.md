@@ -194,6 +194,8 @@ Adicionalmente, la CPU hara un prefetch de datos, es decir tomará datos de form
 
 ![some_images](https://github.com/okason97/chest-xray/blob/master/images/pipelining.png)
 
+El tiempo utilizando pipelining para el primer epoch fue de aproximadamente 56.7 segundos, en los epochs posteriores este tiempo bajo a aproximadamente 53.7 segundos debido al cacheo de las variables. En cambio, sin pipelining el tiempo se reduce a aproximadamente 59.4 segundos en el primer epoch y 56.1 segundos en los epoch posteriores. Por lo tanto la utilizacion de pipelining nos da un aumento en la velocidad de aproximadamente 3 segundos por epoch, un 1.6% de mejora.
+
 ## Entrenamiento
 
 Para el entrenamiento se utilizo Adam optimizer, el cual presenta ventajas frente al optimizador de descenso de gradiente, como la inclusion de la tecnica del momentum, la cual busca evitar resultados optimos locales. La desventaja del optimizador Adam es que es mas lento que el descenso de gradiente, pero es mas sencillo de implementar y genera buenos resultados en problemas complejos.
