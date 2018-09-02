@@ -116,7 +116,9 @@ X_scaled = X_std * (max - min) + min
 
 ## Definición del modelo
 
-Se utilizara una CNN en tensorflow. Esta contará con una arquitectura con la siguiente forma, cada capa se explicará más adelante:
+Se utilizara una CNN en tensorflow. Se probaron varias combinasciones de capas, 2,3 o 4 capas convolucionales y 1 o 2 capas fully connected. Luego de varios intentos con capas de 2 o 3 capas, se descartaron debido a que con estas cantidades de capas no se lograba extraer una cantidad suficiente de features, lo que generaba una baja accuracy (aproximadamente de 75% sobre los datos de test) y, en caso de alargar el entrenamiento, tendian a hacer overfitting, bajando la accuracy sobre lo datos de test aún más.
+La selección de 2 capas fully connected tambien permitió un aumento en la accuracy sobre la seleccion de 1.
+Finalmente se contará con una arquitectura con la siguiente forma, cada capa se explicará más adelante:
 
 nombre de capa | descripcion
 ----- | -----
@@ -135,7 +137,7 @@ out | capa de salida usando cross entropy loss con softmax y prediccion pesada p
 
 Para la seleccion de los hiperparametros se corrieron diversas pruebas hasta encontrar aquellos que dieron los mejores resultados.
 Se seleccionó un batch size de 64, el cual fue el que mayor velocidad daba a la red permitiendo el mayor paralelismo y no viendose limitado por falta de memoria disponible.
-También se eligió setear learning rate con valor 0.001 que evitaba divergencia y permitio una convergencia aceptablemente rapida.
+También se eligió setear learning rate con valor 0.01 que evitaba divergencia y permitio una convergencia aceptablemente rapida.
 Por ultimo se inicio dropout con un valor de 0.75, de esta forma, en cada paso de la red, se deshabilitan un 25% de las neuronas de conv2, conv3, conv4, dense1 y dense2 lo cual permite evitar overfitting y le da mas robustez a la red.
 
 ### Capas convolucionales
@@ -163,7 +165,7 @@ Todas estas caracteristicas vuelven a las GPU una herramienta sumamente útil pa
 
 ### Funciones de activacion
 
-Para las funciones de activacion se decidio utilizar la funcion Leaky Relu, la cual tan como la funcion Relu presenta el mismo valor que el introducido en caso de ser positivo, pero a diferencia de Relu, Leaky Relu posee una pendiente para los valores menores a 0. Se decidio utilizar una pendiente con valor de alpha de 0.5.
+Para las funciones de activacion se decidio utilizar la funcion Leaky Relu, la cual tan como la funcion Relu presenta el mismo valor que el introducido en caso de ser positivo, pero a diferencia de Relu, Leaky Relu posee una pendiente para los valores menores a 0. Se decidio utilizar una pendiente con valor de alpha de 0.5, bastante mayor que la indicada en Empirical Evaluation of Rectified Activations in Convolution Network de 5.5 ya que luego de varias pruebas se descubrió que para este conjunto de datos, una pendiente mayor da mejores resultados.
 
 ![some_images](https://github.com/okason97/chest-xray/blob/master/images/leaky-relu.png)
 
@@ -197,7 +199,7 @@ Para el entrenamiento se utilizo Adam optimizer, el cual presenta ventajas frent
 
 ### Resultado
 
-Como resultado del entrenamiento se obtuvo una presicion de 
+Como resultado del entrenamiento se obtuvo una presicion en 26 epochs de 98.24% sobre los datos de entrenamiento y 85.94% sobre los datos de test.
 
 ## Uso de GPU
 
