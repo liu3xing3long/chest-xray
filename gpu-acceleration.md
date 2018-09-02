@@ -131,6 +131,13 @@ dense1 | capa fully connected con 32x32x128 entradas y 512 salidas
 dense2 | capa fully connected con 512 entradas y 1024 salidas
 out | capa de salida usando cross entropy loss con softmax y prediccion pesada para contrarrestar el desbalance de clases de input
 
+### Hiperparametros
+
+Para la seleccion de los hiperparametros se corrieron diversas pruebas hasta encontrar aquellos que dieron los mejores resultados.
+Se seleccionó un batch size de 64, el cual fue el que mayor velocidad daba a la red permitiendo el mayor paralelismo y no viendose limitado por falta de memoria disponible.
+También se eligió setear learning rate con valor 0.001 que evitaba divergencia y permitio una convergencia aceptablemente rapida.
+Por ultimo se inicio dropout con un valor de 0.75, de esta forma, en cada paso de la red, se deshabilitan un 25% de las neuronas de conv2, conv3, conv4, dense1 y dense2 lo cual permite evitar overfitting y le da mas robustez a la red.
+
 ### Capas convolucionales
 
 Una red neuronal convolucional (CNN) es un tipo de red neuronal especialmente util en la clasificacion y reconocimiento de imagenes.
@@ -139,26 +146,26 @@ A medida que el filtro se desplaza por la matriz input de a stride pixeles se mu
 Una vez formado el feature map se le sumara el bias para pasar el resultado a la proxima capa.
 A medida que la red se entrena, este filtro ira cambiando y descubriendo nuevas features. 
 
-![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/convolutional.png)
 
 Es posible la utilizacion de multiples canales de input mediante batchs lo que permite acelerar la velocidad de cada epoch de esta forma se puede usar el mismo filtro cacheado para multiples matrices de input simultaneamente. Tambien es posible aumentar la profundidad de la CNN aplicando multiples filtros simultaneamente a los mismos datos de entrada generando a su vez multiples feature maps. 
 
-![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/multiple-convolutional.png)
 
 Es posible, gracias a lo mencionado anteriormente, representar la CNN como una multiplicacion de matrices usando Matrices de Toeplitz.
 
-![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/matrix-convolutional.png)
 
 Las GPU son coprocesadores altamente segmentados con una gran cantidad de unidades funcionales y gran ancho de banda especialmente utiles para el trabajo paralelo. En el caso de la GPU utilizada para este proyecto se tiene un ancho de banda de 3.52 Tflops para operaciones de coma flotante de precision simple, 208 GBytes/s ancho de banda de memoria, 5 GB de memoria y 2496 nucleos CUDA. 
 Todas estas caracteristicas vuelven a las GPU una herramienta sumamente útil para el procesamiento de redes neuronales, las cuales pueden tener sus operaciones representadas mediante multiplicación de matrices. La existencia de librerias de GPU como Nvidia CUBLAS, cuDNN, clBLAS, etc. permite utilizarlas para aumentar considerablemente la velocidad de procesamiento de la CNN.
 
-![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/gpu.jpg)
 
 ### Funciones de activacion
 
 Para las funciones de activacion se decidio utilizar la funcion Leaky Relu, la cual tan como la funcion Relu presenta el mismo valor que el introducido en caso de ser positivo, pero a diferencia de Relu, Leaky Relu posee una pendiente para los valores menores a 0. Se decidio utilizar una pendiente con valor de alpha de 0.5.
 
-![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/leaky-relu.png)
 
 ### Pooling
 
@@ -182,13 +189,17 @@ Para realizar la alimentacion de datos, se utiliza la CPU, la cual tendra la tar
 Los datos seran mezclados por la CPU en cada epoch, tambien seran mapeados por esta en multiples hilos en paralelo para preparar las imagenes.
 Adicionalmente, la CPU hara un prefetch de datos, es decir tomará datos de forma adelantada a que estos sean procesados, si la GPU esta procesando el batch n, la CPU, en ese momento, procesara el batch n+1.
 
-![some_images](https://github.com/okason97/chest-xray/blob/master/images/chest-images-normalized.png)
+![some_images](https://github.com/okason97/chest-xray/blob/master/images/pipelining.png)
 
 ## Entrenamiento
 
 Para el entrenamiento se utilizo Adam optimizer, el cual presenta ventajas frente al optimizador de descenso de gradiente, como la inclusion de la tecnica del momentum, la cual busca evitar resultados optimos locales. La desventaja del optimizador Adam es que es mas lento que el descenso de gradiente, pero es mas sencillo de implementar y genera buenos resultados en problemas complejos.
 
-### Uso de GPU
+### Resultado
+
+Como resultado del entrenamiento se obtuvo una presicion de 
+
+## Uso de GPU
 
 Utilizando la herramienta nvidia-smi, mediante el comando:
 
@@ -205,6 +216,17 @@ top
 ```
 
 Dando un utilizamiento de la CPU mayor al 130% y una utilizacion de memoria de 1.8 GB aproximadamente.
+
+Tiempo promedio por epoch con GPU 53.919642734527585 segundos
+
+Tiempo promedio por epoch con CPU 399.6184551715851 segundos
+
+## Conclusión
+
+Poseer una GPU es un recurso muy importante a la hora de entrenar redes neuronales profundas, ya que la cantidad de operaciones en estas es sumamente grande y por lo tanto su tiempo de ejecucion sin hardware especializado se dispara, siendo en este caso el tiempo por epoch con GPU casi 8 veces menor que el tiempo por epoch con CPU. 
+Es importante tambien la cooperacion de la CPU con la GPU proveyendo de un flujo constante de datos para asi evitar un efecto cuello de botella y aprovechar todo el potencial de la GPU.
+Gracias a esto y a las diversas tecnicas utilizadas para evitar el desbalance de carga (aproximadamente 70/30) y el overfitting por la cantidad de datos limitada se pudo lograr una buena precision en un tiempo aceptable. 
+
 
 ## Fuentes
 https://becominghuman.ai/image-data-pre-processing-for-neural-networks-498289068258
