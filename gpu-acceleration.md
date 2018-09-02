@@ -218,6 +218,7 @@ top
 Dando un utilizamiento de la CPU mayor al 130% y una utilizacion de memoria de 1.8 GB aproximadamente.
 
 Tiempo promedio por epoch con GPU 53.919642734527585 segundos
+
 Tiempo promedio por epoch con CPU 399.6184551715851 segundos
 
 ## Conclusión
